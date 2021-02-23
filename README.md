@@ -1,2 +1,2 @@
-# Attribute-based-object-searching-for-surveillance-cameras
+# pedestrian-attribute-recognition
 My thesis master
