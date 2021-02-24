@@ -1,0 +1,32 @@
+For more detail, refer to https://github.com/xh-liu/HydraPlus-Net
+
+Download at here: https://drive.google.com/drive/folders/0B5_Ra3JsEOyOUlhKM0VPZ1ZWR2M
+
+There are 100,000 images with 26 commonly used attributes
+
+['Female',
+'AgeOver60',
+'Age18-60',
+'AgeLess18',
+'Front',
+'Side',
+'Back',
+'Hat',
+'Glasses',
+'HandBag',
+'ShoulderBag',
+'Backpack',
+'HoldObjectsInFront',
+'ShortSleeve',
+'LongSleeve',
+'UpperStride',
+'UpperLogo',
+'UpperPlaid',
+'UpperSplice',
+'LowerStripe',
+'LowerPattern',
+'LongCoat',
+'Trousers',
+'Shorts',
+'Skirt&Dress',
+'boots']
