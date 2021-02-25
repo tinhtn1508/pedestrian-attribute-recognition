@@ -4,6 +4,7 @@ from easydict import EasyDict
 import numpy as np
 from sklearn.model_selection import train_test_split
 import pickle
+from loguru import logger
 
 places = [
     '3DPeS',
@@ -105,7 +106,9 @@ def main(args):
         pickle.dump(dataset, f)
 
 if __name__ == "__main__":
+    logger.info('Starting prepare peta dataset..........')
     parser = buildArgParse()
     args = parser.parse_args()
 
     main(args)
+    logger.info('Preparing process is successful !!!!!!')

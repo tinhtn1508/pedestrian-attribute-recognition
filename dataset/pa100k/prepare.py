@@ -5,6 +5,7 @@ from easydict import EasyDict
 from scipy.io import loadmat
 import argparse
 from sklearn.model_selection import train_test_split
+from loguru import logger
 
 def generate(args):
     pa100k_decription = loadmat(args.annotation_file)
@@ -41,7 +42,9 @@ def buildArgParse():
     return parse
 
 if __name__ == "__main__":
+    logger.info('Starting prepare pa100k dataset.............')
     parser = buildArgParse()
     args = parser.parse_args()
 
     generate(args)
+    logger.info('Preparing process is successful !!!!!!')
