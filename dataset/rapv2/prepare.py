@@ -11,13 +11,16 @@ def generate(args):
     rapv2_decription = rapv2_decription['RAP_annotation']
 
     dataset = EasyDict()
-    dataset.description = 'pa100k'
+    dataset.description = 'rapv2'
     dataset.reorder = 'group_order'
     dataset.root = args.data_dir
 
     dataset.image_name = [rapv2_decription['name'][0][0][i][0][0] for i in range(84928)]
     dataset.attr_name = [rapv2_decription['attribute'][0][0][i][0][0] for i in range(152)]
-    dataset.label = rapv2_decription['data'][0][0]
+    raw_label = rapv2_decription['data'][0][0]
+    selected_attr_idx = rapv2_decription['selected_attribute'][0][0][0] - 1
+
+    dataset.label = raw_label[:, selected_attr_idx]
 
     train = []
     val = []

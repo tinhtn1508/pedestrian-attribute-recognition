@@ -86,7 +86,7 @@ def main(args):
     assert len(labels) == 19000
 
     dataset = EasyDict()
-    dataset.description = 'pa100k'
+    dataset.description = 'peta'
     dataset.reorder = 'group_order'
     dataset.root = args.data_dir
 
