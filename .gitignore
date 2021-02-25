@@ -8,3 +8,5 @@ __pycache__
 ReadMe
 link
 *.gitsave
+*.m
+*.mat

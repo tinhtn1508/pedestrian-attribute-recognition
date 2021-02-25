@@ -100,8 +100,6 @@ def main(args):
     train_index, test_index = train_test_split(np.arange(0, 19000), shuffle=args.shuffle, train_size=args.train_rate, random_state=42)
     dataset.partition.train = train_index
     dataset.partition.test = test_index
-    print(train_index.shape)
-    print(test_index.shape)
 
     with open(os.path.join(args.save_dir, 'peta_description.pkl'), 'wb+') as f:
         pickle.dump(dataset, f)
