@@ -36,7 +36,7 @@ def generate_data_description(save_dir):
     dataset.label = np.concatenate((pa100k_data['train_label'], pa100k_data['val_label'], pa100k_data['test_label']), axis=0)
     assert dataset.label.shape == (100000, 26)
     dataset.attr_name = [pa100k_data['attributes'][i][0][0] for i in range(26)]
-    dataser.attr_size = len(dataset.attr_name)
+    dataset.attr_size = len(dataset.attr_name)
 
     dataset.partition = EasyDict()
     dataset.partition.train = np.arange(0, 90000)  # np.array(range(80000))

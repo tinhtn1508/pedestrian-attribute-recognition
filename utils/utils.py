@@ -27,11 +27,8 @@ def gen_adj(A):
     adj = torch.matmul(torch.matmul(A, D).t(), D)
     return adj
 
-# res = gen_A(26, 0.4, "/home/tinhtn/workspace/Attribute-based-object-searching-for-surveillance-cameras/preprocess/correlation-matrix/pa100k_adj.pkl")
-# print(res)
-
 def getDataInfo(path):
-    with open(data_path, 'rb+') as f:
+    with open(path, 'rb+') as f:
         dataset_info = pickle.load(f)
     return dataset_info
 
@@ -66,10 +63,10 @@ class MultiLabelDataset(data.Dataset):
     def __len__(self):
         return len(self.img_id)
 
-def Get_Dataset(experiment, approach):
+def GetDataset(experiment: str, desciptionFile: str, imageTrainSize: tuple):
     normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     transform_train = transforms.Compose([
-        transforms.Resize(size=(256, 128)),
+        transforms.Resize(size=imageTrainSize),
         transforms.RandomHorizontalFlip(),
         # transforms.ColorJitter(hue=.05, saturation=.05),
         # transforms.RandomRotation(20, resample=Image.BILINEAR),
@@ -78,7 +75,7 @@ def Get_Dataset(experiment, approach):
         ])
 
     if experiment == 'pa100k':
-        data_info = getDataInfo("./dataset/dataset.pkl")
+        data_info = getDataInfo(desciptionFile)
         train_dataset = MultiLabelDataset(split="train",
                     dataset_info = data_info, transform=transform_train)
         test_dataset = MultiLabelDataset(split="test",
