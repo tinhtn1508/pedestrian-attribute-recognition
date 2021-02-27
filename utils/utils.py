@@ -63,7 +63,7 @@ class MultiLabelDataset(data.Dataset):
     def __len__(self):
         return len(self.img_id)
 
-def GetDataset(experiment: str, desciptionFile: str, imageTrainSize: tuple):
+def GetDataset(desciptionFile: str, imageTrainSize: tuple = (256, 128)):
     normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     transform_train = transforms.Compose([
         transforms.Resize(size=imageTrainSize),
@@ -74,12 +74,9 @@ def GetDataset(experiment: str, desciptionFile: str, imageTrainSize: tuple):
         normalize
         ])
 
-    if experiment == 'pa100k':
-        data_info = getDataInfo(desciptionFile)
-        train_dataset = MultiLabelDataset(split="train",
+    data_info = getDataInfo(desciptionFile)
+    train_dataset = MultiLabelDataset(split="train",
                     dataset_info = data_info, transform=transform_train)
-        test_dataset = MultiLabelDataset(split="test",
+    test_dataset = MultiLabelDataset(split="test",
                     dataset_info = data_info, transform=transform_train)
-        return train_dataset, test_dataset, data_info.attr_size, data_info.attr_name
-    elif experiment == "peta":
-        pass
+    return train_dataset, test_dataset, data_info.attr_size, data_info.attr_name
