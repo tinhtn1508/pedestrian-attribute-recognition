@@ -221,7 +221,7 @@ class TrainingEngine():
             lr = self._adjustLearningRate(optimizer)
             logger.info('Learning rate: {}'.format(lr))
 
-            # self.train(train_loader, model, criterion, optimizer, epoch)
+            self.train(train_loader, model, criterion, optimizer, epoch)
             prec = self.validate(val_loader, model, criterion)
 
             is_best = prec > self.__state.best_score
