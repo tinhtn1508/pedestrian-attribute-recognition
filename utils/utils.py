@@ -65,9 +65,9 @@ class MultiLabelDataset(data.Dataset):
 def GetDataset(desciptionFile: str):
     data_info = getDataInfo(desciptionFile)
     train_dataset = MultiLabelDataset(split="train",
-                    dataset_info = data_info, transform=None)
+                    dataset_info=data_info, transform=None)
     test_dataset = MultiLabelDataset(split="test",
-                    dataset_info = data_info, transform=None)
+                    dataset_info=data_info, transform=None)
     return train_dataset, test_dataset, len(data_info.attr_name), data_info.attr_name, data_info.loss_weight
 
 class MultiScaleCrop(object):

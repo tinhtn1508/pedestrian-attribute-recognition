@@ -128,7 +128,7 @@ class TrainingEngine():
         input_var = torch.autograd.Variable(self.__state.input)
         target_var = torch.autograd.Variable(self.__state.target)
         if not training:
-            input_var.volatile. target_var.volatile = True, True
+            input_var.volatile, target_var.volatile = True, True
 
         self.__state.output = model(input_var)
         if type(self.__state.output) == type(()) or type(self.__state.output) == type([]):
@@ -168,6 +168,7 @@ class TrainingEngine():
 
         if 'val_transform' not in self.__state:
             self.__state.val_transform = transforms.Compose([
+                transforms.Resize(size=self.__state.image_size),
                 transforms.RandomHorizontalFlip(),
                 transforms.ToTensor(),
                 normalize
@@ -180,10 +181,12 @@ class TrainingEngine():
         val_dataset.transform = self.__state.val_transform
 
         train_loader = torch.utils.data.DataLoader(train_dataset,
-                                                    batch_size=self.__state.batch_size, shuffle=True,
+                                                    batch_size=self.__state.batch_size,
+                                                    shuffle=True,
                                                     num_workers=self.__state.workers)
         val_loader = torch.utils.data.DataLoader(val_dataset,
-                                                batch_size=self.__state.batch_size, shuffle=False,
+                                                batch_size=self.__state.batch_size,
+                                                shuffle=False,
                                                 num_workers=self.__state.workers)
 
         if 'resume' in self.__state:
@@ -210,7 +213,7 @@ class TrainingEngine():
             criterion = criterion
 
         if self.__state.evaluate:
-            self.validate(val_loader, model, criterion)
+            self.validate(val_loader, model, optimizer)
             return
 
         for epoch in range(self.__state.start_epoch, self.__state.max_epochs):
@@ -218,7 +221,7 @@ class TrainingEngine():
             lr = self._adjustLearningRate(optimizer)
             logger.info('Learning rate: {}'.format(lr))
 
-            self.train(train_loader, model, criterion, optimizer, epoch)
+            # self.train(train_loader, model, criterion, optimizer, epoch)
             prec = self.validate(val_loader, model, criterion)
 
             is_best = prec > self.__state.best_score
@@ -284,7 +287,7 @@ class TrainingEngine():
             if self.__state.use_gpu:
                 self.__state.target = self.__state.target.cuda()
 
-            self._onForward(True, model, criterion, data_loader)
+            self._onForward(False, model, criterion, data_loader)
 
             self.__state.batch_time_current = time.time() - end
             self.__state.batch_time.add(self.__state.batch_time_current)
@@ -293,6 +296,9 @@ class TrainingEngine():
             self._onEndBatch(True, data_loader)
         score = self._onEndEpoch(True)
         return score
+
+    def test(self, data_loader, model, criterion):
+        pass
 
     def _saveCheckpoint(self, state, isBest, fileName='checkpoint.pth.tar'):
         if 'save_model_path' in self.__state:
