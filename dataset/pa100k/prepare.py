@@ -6,6 +6,7 @@ from scipy.io import loadmat
 import argparse
 from sklearn.model_selection import train_test_split
 from loguru import logger
+import math
 
 def generate(args):
     pa100k_decription = loadmat(args.annotation_file)
@@ -29,6 +30,11 @@ def generate(args):
     dataset.partition.train = train_index
     dataset.partition.test = test_index
 
+    # the loss weight
+    count_label = np.count_nonzero(dataset.label, axis=0)
+    loss_weight = [i/100000 for i in count_label]
+    dataset.loss_weight = np.array(loss_weight)
+
     with open(os.path.join(args.save_dir, 'pa100k_description.pkl'), 'wb+') as f:
         pickle.dump(dataset, f)
 
@@ -36,7 +42,7 @@ def buildArgParse():
     parse = argparse.ArgumentParser()
     parse.add_argument('--save_dir', default='.', type=str, required=False, help='Place to store output')
     parse.add_argument('--annotation_file', default='./annotation.mat', type=str, required=False, help='The annotation file')
-    parse.add_argument('--data_dir', default='./release_data/release_data/', type=str, required=False, help='Place to put unzip data')
+    parse.add_argument('--data_dir', default='./dataset/pa100k/release_data/release_data/', type=str, required=False, help='Place to put unzip data')
     parse.add_argument('--train_rate', default=0.9, type=float, required=False, help='The rate of training data')
     parse.add_argument('--shuffle', default=False, type=bool, required=False, help='train, test and validate are shuffled')
     return parse

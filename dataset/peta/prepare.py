@@ -102,6 +102,10 @@ def main(args):
     dataset.partition.train = train_index
     dataset.partition.test = test_index
 
+    count_label = np.count_nonzero(dataset.label, axis=0)
+    loss_weight = [i/19000 for i in count_label]
+    dataset.loss_weight = np.array(loss_weight)
+
     with open(os.path.join(args.save_dir, 'peta_description.pkl'), 'wb+') as f:
         pickle.dump(dataset, f)
 

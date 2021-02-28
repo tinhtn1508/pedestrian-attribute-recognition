@@ -77,11 +77,8 @@ class SpatialTransformBlock(nn.Module):
     def forward(self, features):
         pred_list = []
         bs = features.size(0)
-        att_features = self.att(features)
         for i in range(self.num_classes):
             stn_feature = features * self.att_list[i](features) + features
-            stn_feature = features * att_features[i] + features
-
             theta_i = self.stn_list[i](F.avg_pool2d(stn_feature, stn_feature.size()[2:]).view(bs,-1)).view(-1,4)
             theta_i = self.transform_theta(theta_i, i)
 

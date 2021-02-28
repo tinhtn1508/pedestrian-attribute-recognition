@@ -19,7 +19,7 @@ def generate(args):
     dataset.image_name = [rapv1_decription[0][0][5][i][0][0] for i in range(41585)]
     raw_attr_name = [rapv1_decription[0][0][3][i][0][0] for i in range(92)]
     raw_label = rapv1_decription[0][0][1]
-    dataset.label = raw_label[:, np.array(range(51))]
+    dataset.label = np.array(raw_label[:, np.array(range(51))])
     dataset.attr_name = [raw_attr_name[i] for i in range(51)]
 
     train = []
@@ -32,12 +32,15 @@ def generate(args):
     train = np.concatenate(train)
     test = np.concatenate(test)
     data = np.concatenate([train, test])
-    print(data.shape)
 
     dataset.partition = EasyDict()
     train_index, test_index = train_test_split(data, shuffle=args.shuffle, train_size=args.train_rate, random_state=42)
     dataset.partition.train = train_index
     dataset.partition.test = test_index
+
+    count_label = np.count_nonzero(dataset.label, axis=0)
+    loss_weight = [i/41585 for i in count_label]
+    dataset.loss_weight = np.array(loss_weight)
 
     with open(os.path.join(args.save_dir, 'rapv1_description.pkl'), 'wb+') as f:
         pickle.dump(dataset, f)
