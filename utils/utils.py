@@ -63,6 +63,16 @@ class MultiLabelDataset(data.Dataset):
     def __len__(self):
         return len(self.img_id)
 
+    def toImageAttribute(self, imageIndex, attributeIndex):
+        imgname = self.img_id[imageIndex]
+        imgpath = os.path.join(self.data_workspace, self.root_path, imgname)
+        attr = []
+        for attIndex, attName in zip(attributeIndex, self.attr_id):
+            if attIndex == 1:
+                attr.append(attName)
+        return imgpath, attr
+
+
 def GetDataset(workspace, desciptionFile: str):
     data_info = getDataInfo(desciptionFile)
     train_dataset = MultiLabelDataset(split="train",

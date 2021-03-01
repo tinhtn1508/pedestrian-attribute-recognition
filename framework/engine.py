@@ -1,4 +1,7 @@
 from logging import log
+from scipy.sparse.construct import random
+
+from torch._C import set_flush_denormal
 import model as lib
 import os
 from loguru import logger
@@ -178,8 +181,13 @@ class TrainingEngine():
                 normalize
                 ])
 
+        logger.info('Number of model parameters: {}'.format(
+            sum([p.data.nelement() for p in model.parameters()])))
+
     def learning(self, model, criterion, train_dataset, val_dataset, optimizer = None):
         self._initLearning(model)
+        self.__state.train_data_convert_fn = train_dataset.toImageAttribute
+        self.__state.val_data_convert_fn = val_dataset.toImageAttribute
 
         train_dataset.transform = self.__state.train_transform
         val_dataset.transform = self.__state.val_transform
@@ -217,7 +225,7 @@ class TrainingEngine():
             criterion = criterion
 
         if self.__state.evaluate:
-            self.validate(val_loader, model, optimizer)
+            self.test(val_loader, model, optimizer)
             return
 
         for epoch in range(self.__state.start_epoch, self.__state.max_epochs):
@@ -321,13 +329,18 @@ class TrainingEngine():
                 self.__state.target = self.__state.target.cuda()
             self._onForward(False, model, criterion, data_loader)
 
-            tol += self.__state.batch_size
+            tol += target.size(0)
             output = torch.sigmoid(self.__state.predict).detach().numpy()
             output = np.where(output > 0.5, 1, 0)
             target = target.cpu().numpy()
 
+            if random.randint(0, 100) % 10 == 0:
+                img, att = self.__state.val_data_convert_fn(input[0], output[0])
+                logger.debug("Image name: {}".format(img))
+                logger.debug("Attribute's predict: {}".format(att))
+
             for it in range(self.__state.attr_num):
-                for jt in range(self.__state.batch_size):
+                for jt in range(min(self.__state.batch_size, target.size(0))):
                     if target[jt][it] == 1:
                         pos_tol[it] += 1
                         if output[jt][it] == 1:
@@ -338,7 +351,7 @@ class TrainingEngine():
                         if output[jt][it] == 0:
                             neg_cnt[it] += 1
 
-            for jt in range(self.__state.batch_size):
+            for jt in range(min(self.__state.batch_size, target.size(0))):
                 tp, fn, fp = 0, 0, 0
                 for it in range(self.__state.attr_num):
                     if output[jt][it] == 1 and target[jt][it] == 1:
