@@ -131,6 +131,7 @@ class TrainingEngine():
             input_var.volatile, target_var.volatile = True, True
 
         self.__state.output = model(input_var)
+        # in case the model has multiple output
         if type(self.__state.output) == type(()) or type(self.__state.output) == type([]):
             loss_list = []
             predict = self.__state.output[0]
@@ -139,8 +140,10 @@ class TrainingEngine():
                 predict = torch.max(predict, output)
             self.__state.loss = sum(loss_list)
             self.__state.accuracy_batch = lib.BinaryAccuracy(predict, target_var)
+        # in case if baseline
         else:
             self.__state.loss = criterion(self.__state.output, target_var)
+            self.__state.accuracy_batch = lib.BinaryAccuracy(torch.sigmoid(self.__state.output), target_var)
 
         if training:
             optimizer.zero_grad()
@@ -225,11 +228,11 @@ class TrainingEngine():
             prec = self.validate(val_loader, model, criterion)
 
             is_best = prec > self.__state.best_score
-            self.__state.best_core = max(prec, self.__state.best_score)
+            self.__state.best_score = max(prec, self.__state.best_score)
             self._saveCheckpoint({
                 'epoch': epoch + 1,
                 'state_dict': model.module.state_dict() if self.__state.use_gpu else model.state_dict(),
-                'best_score': self.__state.best_core,
+                'best_score': self.__state.best_score,
             }, is_best)
 
             logger.info('best score: {best:.3f}'.format(best=self.__state.best_score))
@@ -297,8 +300,29 @@ class TrainingEngine():
         score = self._onEndEpoch(True)
         return score
 
-    def test(self, data_loader, model, criterion):
-        pass
+    def test(self, data_loader, model, criterion, attr_num):
+        model.eval()
+
+        pos_cnt = [0 for _ in range(attr_num)]
+        pos_tol = [0 for _ in range(attr_num)]
+        neg_cnt = [0 for _ in range(attr_num)]
+        neg_tol = [0 for _ in range(attr_num)]
+        accu, prec, recall, tol = 0.0, 0.0, 0.0, 0
+
+        self._onStartEpoch()
+        for i, (input, target) in enumerate(data_loader):
+            self.__state.input = input
+            self.__state.target = target
+            if self.__state.use_gpu:
+                self.__state.target = self.__state.target.cuda()
+            self._onForward(False, model, criterion, data_loader)
+
+            batch_size = target.size(0)
+            tol += batch_size
+            output = torch.sigmoid(self.__state.output.data).cpu().detach().numpy()
+            output = np.where(output > 0.5, 1, 0)
+            target = target.cpu().numpy()
+        # TODO
 
     def _saveCheckpoint(self, state, isBest, fileName='checkpoint.pth.tar'):
         if 'save_model_path' in self.__state:
