@@ -37,7 +37,7 @@ def default_loader(path):
     return Image.open(path).convert('RGB')
 
 class MultiLabelDataset(data.Dataset):
-    def __init__(self, split, dataset_info, transform=None, loader=default_loader):
+    def __init__(self, split, dataset_info, transform=None, loader=default_loader, data_workspace=''):
         img_id = dataset_info.image_name
         attr_label = dataset_info.label
         self.transform = transform
@@ -49,10 +49,11 @@ class MultiLabelDataset(data.Dataset):
         self.img_num = self.img_idx.shape[0]
         self.img_id = [img_id[i] for i in self.img_idx]
         self.label = attr_label[self.img_idx]
+        self.data_workspace = data_workspace
 
     def __getitem__(self, index):
         imgname, gt_label, _ = self.img_id[index], self.label[index], self.img_idx[index]
-        imgpath = os.path.join(self.root_path, imgname)
+        imgpath = os.path.join(self.data_workspace, self.root_path, imgname)
         img = self.loader(imgpath)
         
         if self.transform is not None:
@@ -62,12 +63,12 @@ class MultiLabelDataset(data.Dataset):
     def __len__(self):
         return len(self.img_id)
 
-def GetDataset(desciptionFile: str):
+def GetDataset(workspace, desciptionFile: str):
     data_info = getDataInfo(desciptionFile)
     train_dataset = MultiLabelDataset(split="train",
-                    dataset_info=data_info, transform=None)
+                    dataset_info=data_info, transform=None, data_workspace=workspace)
     test_dataset = MultiLabelDataset(split="test",
-                    dataset_info=data_info, transform=None)
+                    dataset_info=data_info, transform=None, data_workspace=workspace)
     return train_dataset, test_dataset, len(data_info.attr_name), data_info.attr_name, data_info.loss_weight
 
 class MultiScaleCrop(object):

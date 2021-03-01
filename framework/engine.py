@@ -139,11 +139,12 @@ class TrainingEngine():
                 loss_list.append(criterion(torch.sigmoid(output), target_var))
                 predict = torch.max(predict, output)
             self.__state.loss = sum(loss_list)
+            self.__state.predict = predict.cpu()
             self.__state.accuracy_batch = lib.BinaryAccuracy(predict, target_var)
         # in case if baseline
         else:
             self.__state.loss = criterion(self.__state.output, target_var)
-            self.__state.accuracy_batch = lib.BinaryAccuracy(torch.sigmoid(self.__state.output), target_var)
+            self.__state.accuracy_batch = lib.BinaryAccuracy(self.__state.output, target_var)
 
         if training:
             optimizer.zero_grad()
@@ -226,6 +227,7 @@ class TrainingEngine():
 
             self.train(train_loader, model, criterion, optimizer, epoch)
             prec = self.validate(val_loader, model, criterion)
+            self.test(val_loader, model, criterion)
 
             is_best = prec > self.__state.best_score
             self.__state.best_score = max(prec, self.__state.best_score)
@@ -275,7 +277,7 @@ class TrainingEngine():
         self._onStartEpoch()
 
         if self.__state.use_pb:
-            data_loader = tqdm(data_loader, desc='Testing')
+            data_loader = tqdm(data_loader, desc='Validating')
 
         end = time.time()
         for i, (input, target) in enumerate(data_loader):
@@ -300,29 +302,82 @@ class TrainingEngine():
         score = self._onEndEpoch(True)
         return score
 
-    def test(self, data_loader, model, criterion, attr_num):
+    def test(self, data_loader, model, criterion):
         model.eval()
+        if self.__state.use_pb:
+            data_loader = tqdm(data_loader, desc='Testing')
 
-        pos_cnt = [0 for _ in range(attr_num)]
-        pos_tol = [0 for _ in range(attr_num)]
-        neg_cnt = [0 for _ in range(attr_num)]
-        neg_tol = [0 for _ in range(attr_num)]
+        pos_cnt = [0 for _ in range(self.__state.attr_num)]
+        pos_tol = [0 for _ in range(self.__state.attr_num)]
+        neg_cnt = [0 for _ in range(self.__state.attr_num)]
+        neg_tol = [0 for _ in range(self.__state.attr_num)]
         accu, prec, recall, tol = 0.0, 0.0, 0.0, 0
 
         self._onStartEpoch()
-        for i, (input, target) in enumerate(data_loader):
+        for _, (input, target) in enumerate(data_loader):
             self.__state.input = input
             self.__state.target = target
             if self.__state.use_gpu:
                 self.__state.target = self.__state.target.cuda()
             self._onForward(False, model, criterion, data_loader)
 
-            batch_size = target.size(0)
-            tol += batch_size
-            output = torch.sigmoid(self.__state.output.data).cpu().detach().numpy()
+            tol += self.__state.batch_size
+            output = torch.sigmoid(self.__state.predict).detach().numpy()
             output = np.where(output > 0.5, 1, 0)
             target = target.cpu().numpy()
-        # TODO
+
+            for it in range(self.__state.attr_num):
+                for jt in range(self.__state.batch_size):
+                    if target[jt][it] == 1:
+                        pos_tol[it] += 1
+                        if output[jt][it] == 1:
+                            pos_cnt[it] += 1
+
+                    if target[jt][it] == 0:
+                        neg_tol[it] += 1
+                        if output[jt][it] == 0:
+                            neg_cnt[it] += 1
+
+            for jt in range(self.__state.batch_size):
+                tp, fn, fp = 0, 0, 0
+                for it in range(self.__state.attr_num):
+                    if output[jt][it] == 1 and target[jt][it] == 1:
+                        tp += 1
+                    elif output[jt][it] == 0 and target[jt][it] == 1:
+                        fn += 1
+                    elif output[jt][it] == 1 and target[jt][it] == 0:
+                        fp += 1
+                if tp + fn + fp != 0:
+                    accu +=  1.0 * tp / (tp + fn + fp)
+                if tp + fp != 0:
+                    prec += 1.0 * tp / (tp + fp)
+                if tp + fn != 0:
+                    recall += 1.0 * tp / (tp + fn)
+
+        logger.info('=' * 100)
+        logger.info('\t     Attr              \tp_true/n_true\tp_tol/n_tol\tp_pred/n_pred\tcur_mA')
+        mA = 0.0
+        for it in range(self.__state.attr_num):
+            cur_mA = ((1.0*pos_cnt[it]/(pos_tol[it]+0.0000001)) + (1.0*neg_cnt[it]/(neg_tol[it]+0.000001))) / 2.0
+            mA += cur_mA
+            logger.info('\t#{:2}: {:18}\t{:4}\{:4}\t{:4}\{:4}\t{:4}\{:4}\t{:.5f}'.format(
+                it, self.__state.attr_name[it], pos_cnt[it], neg_cnt[it], pos_tol[it], neg_tol[it],
+                (pos_cnt[it]+neg_tol[it]-neg_cnt[it]), (neg_cnt[it]+pos_tol[it]-pos_cnt[it]), cur_mA)
+                )
+
+        mA = mA / self.__state.attr_num
+        logger.info('\t' + 'mA:        '+str(mA))
+
+        if self.__state.attr_num != 1:
+            accu /= tol
+            prec /= tol
+            recall /= tol
+            f1 = 2.0 * prec * recall / (prec + recall)
+            logger.info('\t' + 'Accuracy:  '+str(accu))
+            logger.info('\t' + 'Precision: '+str(prec))
+            logger.info('\t' + 'Recall:    '+str(recall))
+            logger.info('\t' + 'F1_Score:  '+str(f1))
+        logger.info('=' * 100)
 
     def _saveCheckpoint(self, state, isBest, fileName='checkpoint.pth.tar'):
         if 'save_model_path' in self.__state:

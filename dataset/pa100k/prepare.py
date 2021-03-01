@@ -42,7 +42,7 @@ def buildArgParse():
     parse = argparse.ArgumentParser()
     parse.add_argument('--save_dir', default='.', type=str, required=False, help='Place to store output')
     parse.add_argument('--annotation_file', default='./annotation.mat', type=str, required=False, help='The annotation file')
-    parse.add_argument('--data_dir', default='./dataset/pa100k/release_data/release_data/', type=str, required=False, help='Place to put unzip data')
+    parse.add_argument('--data_dir', default='./release_data/release_data/', type=str, required=False, help='Place to put unzip data')
     parse.add_argument('--train_rate', default=0.9, type=float, required=False, help='The rate of training data')
     parse.add_argument('--shuffle', default=False, type=bool, required=False, help='train, test and validate are shuffled')
     return parse

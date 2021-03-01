@@ -26,6 +26,7 @@ def buildArgParse():
     parser.add_argument('--print_freq', default=100, type=int, help='the print frequency')
     parser.add_argument('--resume', default='', type=str, help='path to latest checkpoint')
     parser.add_argument('--dataset', default='./dataset/pa100k/pa100k_description.pkl', help='The path file to dataset')
+    parser.add_argument('--data_workspace', default='./dataset/pa100k', help='The path file to dataset')
     return parser
 
 def main():
@@ -36,7 +37,7 @@ def main():
     logger.info("------------------- Main start ------------------")
 
     use_gpu = torch.cuda.is_available()
-    train_dataset, val_dataset, num_classes, _, loss_weight = utils.GetDataset(args.dataset)
+    train_dataset, val_dataset, num_classes, attr_name, loss_weight = utils.GetDataset(args.data_workspace, args.dataset)
     _model = model.InceptionNet(num_classes=num_classes)
     criterion = model.WeightedBinaryCrossEntropy(loss_weight)
     optimizer = torch.optim.SGD(params=_model.parameters(),
@@ -52,6 +53,9 @@ def main():
     state.save_model_path = './'
     state.use_gpu = use_gpu
     state.print_freq = args.print_freq
+    # Workaround
+    state.attr_name = attr_name
+    state.attr_num = num_classes
 
     engine = framework.TrainingEngine(state)
     engine.learning(_model, criterion, train_dataset, val_dataset, optimizer)

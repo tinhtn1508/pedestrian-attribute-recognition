@@ -52,7 +52,7 @@ def buildLabel(imagesName, attributeName, attributeMap):
     for image in imagesName:
         label = [0 for _ in range(len(attributeName))]
         token = image.split('/')
-        key = token[0] + '-' + token[1][0:-4].split('_')[0]
+        key = token[0] + '-' + token[2][0:-4].split('_')[0]
         actualAttr = attributeMap[key]
         for index, att in enumerate(attributeName):
             if att in actualAttr:
@@ -75,7 +75,7 @@ def getImagesName(dataDir):
         names = next(it)[2]
         for name in names:
             if name != 'Label.txt':
-                ret.append(place + '/' + name)
+                ret.append(place + '/archive/' + name)
     assert len(ret) == 19000
     return ret
 
