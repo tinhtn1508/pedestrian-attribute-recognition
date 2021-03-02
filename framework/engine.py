@@ -16,6 +16,7 @@ import torch.backends.cudnn as cudnn
 from tqdm import tqdm
 import time
 import numpy as np
+import random as rand
 
 tqdm.monitor_interval = 0
 
@@ -334,7 +335,7 @@ class TrainingEngine():
             output = np.where(output > 0.5, 1, 0)
             target = target.cpu().numpy()
 
-            if random.randint(0, 100) % 10 == 0:
+            if rand.randint(0, 100) % 10 == 0:
                 img, att = self.__state.val_data_convert_fn(input[0], output[0])
                 logger.debug("Image name: {}".format(img))
                 logger.debug("Attribute's predict: {}".format(att))
