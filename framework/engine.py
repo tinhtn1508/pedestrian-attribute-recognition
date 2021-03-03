@@ -76,13 +76,13 @@ class TrainingEngine():
         self.__state.meter_accuracy.reset()
 
     def _onEndEpoch(self, training: bool, display=True) -> float:
-        loss = self.__state.meter_loss.value()[0]
+        acc = self.__state.meter_accuracy.value()[0]
         if display:
             if training:
                 logger.info('Epoch: [{0}]\tLoss: {loss:.4f}'.format(self.__state.epoch, loss=loss))
             else:
                 logger.info('Test: \nLoss: {loss:.4f}'.format(loss=loss))
-        return loss
+        return acc
 
     def _onStartBatch(self, training: bool, model, criterion, data_loader, optimizer=None, display=True):
         pass
