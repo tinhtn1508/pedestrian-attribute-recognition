@@ -79,9 +79,9 @@ class TrainingEngine():
         acc = self.__state.meter_accuracy.value()[0]
         if display:
             if training:
-                logger.info('Epoch: [{0}]\tLoss: {loss:.4f}'.format(self.__state.epoch, loss=loss))
+                logger.info('Epoch: [{0}]\Acc: {acc:.4f}'.format(self.__state.epoch, loss=acc))
             else:
-                logger.info('Test: \nLoss: {loss:.4f}'.format(loss=loss))
+                logger.info('Test: \Acc: {acc:.4f}'.format(acc=acc))
         return acc
 
     def _onStartBatch(self, training: bool, model, criterion, data_loader, optimizer=None, display=True):
