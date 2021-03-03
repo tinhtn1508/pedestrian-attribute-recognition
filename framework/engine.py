@@ -1,4 +1,5 @@
 from logging import log
+from operator import index
 from scipy.sparse.construct import random
 
 from torch._C import set_flush_denormal
@@ -259,7 +260,7 @@ class TrainingEngine():
             data_loader = tqdm(data_loader, desc='Training')
 
         end = time.time()
-        for i, (input, target) in enumerate(data_loader):
+        for i, (input, target, _) in enumerate(data_loader):
             self.__state.iteration = i
             self.__state.data_time_batch = time.time() - end
             self.__state.data_time.add(self.__state.data_time_batch)
@@ -289,7 +290,7 @@ class TrainingEngine():
             data_loader = tqdm(data_loader, desc='Validating')
 
         end = time.time()
-        for i, (input, target) in enumerate(data_loader):
+        for i, (input, target, _) in enumerate(data_loader):
             self.__state.iteration = i
             self.__state.data_time_batch = time.time() - end
             self.__state.data_time.add(self.__state.data_time_batch)
@@ -323,7 +324,7 @@ class TrainingEngine():
         accu, prec, recall, tol = 0.0, 0.0, 0.0, 0
 
         self._onStartEpoch()
-        for _, (input, target) in enumerate(data_loader):
+        for _, (input, target, img_name) in enumerate(data_loader):
             self.__state.input = input
             self.__state.target = target
             if self.__state.use_gpu:
@@ -335,13 +336,16 @@ class TrainingEngine():
             output = np.where(output > 0.5, 1, 0)
             target = target.cpu().numpy()
 
-            if rand.randint(0, 100) % 10 == 0:
-                img, att = self.__state.val_data_convert_fn(input[0], output[0])
-                logger.debug("Image name: {}".format(img))
-                logger.debug("Attribute's predict: {}".format(att))
+            if rand.randint(0, 1000) % 100 == 0:
+                index = rand.randint(0, target.shape[0]-1)
+                logger.debug("Image's name: {}".format(img_name[index]))
+                att = self.__state.val_data_convert_fn(output[index])
+                logger.debug("Predicted attribute: {}".format(att))
+                att = self.__state.val_data_convert_fn(target[index])
+                logger.debug("Actual attribute: {}".format(att))
 
             for it in range(self.__state.attr_num):
-                for jt in range(min(self.__state.batch_size, target.size(0))):
+                for jt in range(min(self.__state.batch_size, target.shape[0])):
                     if target[jt][it] == 1:
                         pos_tol[it] += 1
                         if output[jt][it] == 1:
@@ -352,7 +356,7 @@ class TrainingEngine():
                         if output[jt][it] == 0:
                             neg_cnt[it] += 1
 
-            for jt in range(min(self.__state.batch_size, target.size(0))):
+            for jt in range(min(self.__state.batch_size, target.shape[0])):
                 tp, fn, fp = 0, 0, 0
                 for it in range(self.__state.attr_num):
                     if output[jt][it] == 1 and target[jt][it] == 1:

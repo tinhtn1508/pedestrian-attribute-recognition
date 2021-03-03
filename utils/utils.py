@@ -58,19 +58,17 @@ class MultiLabelDataset(data.Dataset):
         
         if self.transform is not None:
             img = self.transform(img)
-        return img, torch.Tensor(gt_label)
+        return img, torch.Tensor(gt_label), imgpath
 
     def __len__(self):
         return len(self.img_id)
 
-    def toImageAttribute(self, imageIndex, attributeIndex):
-        imgname = self.img_id[imageIndex]
-        imgpath = os.path.join(self.data_workspace, self.root_path, imgname)
+    def toImageAttribute(self, attributeIndex):
         attr = []
         for attIndex, attName in zip(attributeIndex, self.attr_id):
             if attIndex == 1:
                 attr.append(attName)
-        return imgpath, attr
+        return attr
 
 
 def GetDataset(workspace, desciptionFile: str):
