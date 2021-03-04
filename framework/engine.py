@@ -79,7 +79,7 @@ class TrainingEngine():
         acc = self.__state.meter_accuracy.value()[0]
         if display:
             if training:
-                logger.info('Epoch: [{0}]\Acc: {acc:.4f}'.format(self.__state.epoch, loss=acc))
+                logger.info('Epoch: [{0}]\Acc: {acc:.4f}'.format(self.__state.epoch, acc=acc))
             else:
                 logger.info('Test: \Acc: {acc:.4f}'.format(acc=acc))
         return acc
