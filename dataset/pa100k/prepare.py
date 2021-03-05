@@ -26,9 +26,9 @@ def generate(args):
     assert dataset.label.shape == (100000, 26)
 
     dataset.partition = EasyDict()
-    train_index, test_index = train_test_split(np.arange(0, 100000), shuffle=args.shuffle, train_size=args.train_rate, random_state=42)
-    dataset.partition.train = train_index
-    dataset.partition.test = test_index
+    # train_index, test_index = train_test_split(np.arange(0, 100000), shuffle=args.shuffle, train_size=args.train_rate, random_state=42)
+    dataset.partition.train = np.arange(0, 89984)
+    dataset.partition.test = np.arange(90000, 100000)
 
     # the loss weight
     count_label = np.count_nonzero(dataset.label, axis=0)

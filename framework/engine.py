@@ -139,11 +139,12 @@ class TrainingEngine():
         # in case the model has multiple output
         if type(self.__state.output) == type(()) or type(self.__state.output) == type([]):
             loss_list = []
-            predict = self.__state.output[0]
+            # predict = self.__state.output[0]
             for output in self.__state.output:
                 loss_list.append(criterion(torch.sigmoid(output), target_var))
-                predict = torch.max(predict, output)
+                # predict = torch.max(predict, output)
             self.__state.loss = sum(loss_list)
+            predict = torch.max(torch.max(torch.max(self.__state.output[0],self.__state.output[1]),self.__state.output[2]),self.__state.output[3])
             self.__state.predict = predict.cpu()
             self.__state.accuracy_batch = lib.BinaryAccuracy(predict, target_var)
         # in case if baseline
@@ -224,7 +225,6 @@ class TrainingEngine():
 
             model = torch.nn.DataParallel(model, device_ids=self.__state.device_ids).cuda()
             # criterion = criterion.cuda()
-            criterion = criterion
 
         if self.__state.evaluate:
             self.test(val_loader, model, optimizer)
@@ -346,18 +346,18 @@ class TrainingEngine():
 
             for it in range(self.__state.attr_num):
                 for jt in range(min(self.__state.batch_size, target.shape[0])):
-                    if target[jt][it] == 1:
-                        pos_tol[it] += 1
-                        if output[jt][it] == 1:
-                            pos_cnt[it] += 1
+                    if target[jt][it] == 1.:
+                        pos_tol[it] += 1.
+                        if output[jt][it] == 1.:
+                            pos_cnt[it] += 1.
 
-                    if target[jt][it] == 0:
-                        neg_tol[it] += 1
-                        if output[jt][it] == 0:
-                            neg_cnt[it] += 1
+                    if target[jt][it] == 0.:
+                        neg_tol[it] += 1.
+                        if output[jt][it] == 0.:
+                            neg_cnt[it] += 1.
 
             for jt in range(min(self.__state.batch_size, target.shape[0])):
-                tp, fn, fp = 0, 0, 0
+                tp, fn, fp = 0., 0., 0.
                 for it in range(self.__state.attr_num):
                     if output[jt][it] == 1 and target[jt][it] == 1:
                         tp += 1
@@ -365,12 +365,12 @@ class TrainingEngine():
                         fn += 1
                     elif output[jt][it] == 1 and target[jt][it] == 0:
                         fp += 1
-                if tp + fn + fp != 0:
-                    accu +=  1.0 * tp / (tp + fn + fp)
-                if tp + fp != 0:
-                    prec += 1.0 * tp / (tp + fp)
+                if tp + fn + fp != 0.:
+                    accu +=  tp / (tp + fn + fp)
+                if tp + fp != 0.:
+                    prec += tp / (tp + fp)
                 if tp + fn != 0:
-                    recall += 1.0 * tp / (tp + fn)
+                    recall += tp / (tp + fn)
 
         logger.info('=' * 100)
         logger.info('\t     Attr              \tp_true/n_true\tp_tol/n_tol\tp_pred/n_pred\tcur_mA')
