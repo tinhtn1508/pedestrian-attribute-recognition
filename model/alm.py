@@ -4,6 +4,7 @@ import torch.tensor as tensor
 from torch.nn import functional as F
 from torch.hub import load_state_dict_from_url
 from model.bninception import BNInception
+import os
 
 '''
 Refer to: https://github.com/chufengt/iccv19_attribute/blob/master/model/inception_iccv.py
@@ -15,7 +16,10 @@ def inception_iccv(pretrained=True, debug=False, **kwargs):
         pretrained model: 'https://github.com/Cadene/pretrained-models.pytorch/blob/master/pretrainedmodels/models/bninception.py'
     """
     if pretrained:
-        pretrained_dict = load_state_dict_from_url('http://data.lip6.fr/cadene/pretrainedmodels/bn_inception-52deb4733.pth')
+        if os.path.isfile('/content/tinhtn/MyDrive/pretrain/bn_inception-52deb4733.pth'):
+            pretrained_dict = torch.load('/content/tinhtn/MyDrive/pretrain/bn_inception-52deb4733.pth')
+        else:
+            pretrained_dict = load_state_dict_from_url('http://data.lip6.fr/cadene/pretrainedmodels/bn_inception-52deb4733.pth')
         model_dict = model.state_dict()
         new_dict = {}
         for k,_ in model_dict.items():
