@@ -104,7 +104,22 @@ def main(args):
 
     count_label = np.count_nonzero(dataset.label, axis=0)
     loss_weight = [i/19000 for i in count_label]
-    dataset.loss_weight = np.array(loss_weight)
+    m = {}
+    for i, v in enumerate(loss_weight):
+        if v > 0.05:
+            m[i] = v
+    s = dict(sorted(m.items(), key=lambda item: item[1]))
+    choseLabel = list(s.keys())[:35]
+
+    limitLabel = []
+    for row in dataset.label:
+        l = [None]*35
+        for i, v in enumerate(choseLabel):
+            l[i] = row[v]
+        limitLabel.append(l)
+
+    dataset.label = np.array(limitLabel)
+    dataset.loss_weight = np.array(list(s.values()))
 
     with open(os.path.join(args.save_dir, 'peta_description.pkl'), 'wb+') as f:
         pickle.dump(dataset, f)

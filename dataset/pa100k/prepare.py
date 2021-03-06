@@ -26,13 +26,13 @@ def generate(args):
     assert dataset.label.shape == (100000, 26)
 
     dataset.partition = EasyDict()
-    # train_index, test_index = train_test_split(np.arange(0, 100000), shuffle=args.shuffle, train_size=args.train_rate, random_state=42)
-    dataset.partition.train = np.arange(0, 89984)
-    dataset.partition.test = np.arange(90000, 100000)
+    train_index, test_index = train_test_split(np.arange(0, 100000), shuffle=args.shuffle, train_size=args.train_rate, random_state=42)
+    dataset.partition.train = train_index
+    dataset.partition.test = test_index
 
     # the loss weight
     count_label = np.count_nonzero(dataset.label, axis=0)
-    loss_weight = [i/100000 for i in count_label]
+    loss_weight = [i/100000 for i in count_label] 
     dataset.loss_weight = np.array(loss_weight)
 
     with open(os.path.join(args.save_dir, 'pa100k_description.pkl'), 'wb+') as f:
