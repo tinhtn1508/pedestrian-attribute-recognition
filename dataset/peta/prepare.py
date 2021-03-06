@@ -19,6 +19,78 @@ places = [
     'VIPeR'
 ]
 
+attributeName = ['Age16-30',
+                'Age31-45',
+                'Age46-60',
+                'AgeAbove61',
+                'Backpack',
+                'CarryingOther',
+                'Casual lower',
+                'Casual upper',
+                'Formal lower',
+                'Formal upper',
+                'Hat',
+                'Jacket',
+                'Jeans',
+                'Leather Shoes',
+                'Logo',
+                'Long hair',
+                'Male',
+                'Messenger Bag',
+                'Muffler',
+                'No accessory',
+                'No carrying',
+                'Plaid',
+                'PlasticBags',
+                'Sandals',
+                'Shoes',
+                'Shorts',
+                'Short Sleeve',
+                'Skirt',
+                'Sneaker',
+                'Stripes',
+                'Sunglasses',
+                'Trousers',
+                'Tshirt',
+                'UpperOther',
+                'V-Neck']
+
+loss_weight = [[0.5016,
+                0.3275,
+                0.1023,
+                0.0597,
+                0.1986,
+                0.2011,
+                0.8643,
+                0.8559,
+                0.1342,
+                0.1297,
+                0.1014,
+                0.0685,
+                0.314,
+                0.2932,
+                0.04,
+                0.2346,
+                0.5473,
+                0.2974,
+                0.0849,
+                0.7523,
+                0.2717,
+                0.0282,
+                0.0749,
+                0.0191,
+                0.3633,
+                0.0359,
+                0.1425,
+                0.0454,
+                0.2201,
+                0.0178,
+                0.0285,
+                0.5125,
+                0.0838,
+                0.4605,
+                0.0124]]
+
 def buildArgParse():
     parse = argparse.ArgumentParser()
     parse.add_argument('--save_dir', default='.', type=str, required=False, help='Place to store output')
@@ -80,52 +152,33 @@ def getImagesName(dataDir):
     return ret
 
 def main(args):
-    attrName, attrMap = buildAttributeName(getLabelFiles(args.data_dir))
-    imgName = getImagesName(args.data_dir)
-
-    labels = buildLabel(imgName, attrName, attrMap)
-    assert len(labels) == 19000
-
     dataset = EasyDict()
     dataset.description = 'peta'
     dataset.reorder = 'group_order'
     dataset.root = args.data_dir
+    dataset.attr_name =  attributeName
+    dataset.loss_weight = np.array(loss_weight)
+    imgName = []
+    labels = []
+    with open('PETA_train_list.txt', 'r') as f:
+        for row in f.readlines():
+            token = row.split(' ')[:-1]
+            label = [int(i) for i in token[1:]]
+            imgName.append(token[0])
+            labels.append(label)
+
+    with open('PETA_test_list.txt', 'r') as f:
+        for row in f.readlines():
+            token = row.split(' ')[:-1]
+            label = [int(i) for i in token[1:]]
+            imgName.append(token[0])
+            labels.append(label)
 
     dataset.image_name = imgName
     dataset.label = np.array(labels)
-    dataset.attr_name = attrName
-
-    assert dataset.label.shape == (19000, 106)
-
     dataset.partition = EasyDict()
-    train_index, test_index = train_test_split(np.arange(0, 19000), shuffle=args.shuffle, train_size=args.train_rate, random_state=42)
-    dataset.partition.train = train_index
-    dataset.partition.test = test_index
-
-    count_label = np.count_nonzero(dataset.label, axis=0)
-    loss_weight = [i/19000 for i in count_label]
-
-    m = {}
-    for i, v in enumerate(loss_weight):
-        if v > 0.05:
-            m[i] = v
-    s = dict(sorted(m.items(), key=lambda item: item[1]))
-    choseLabel = list(s.keys())[:35]
-
-    limitLabel = []
-    for row in dataset.label:
-        l = [None]*35
-        for i, v in enumerate(choseLabel):
-            l[i] = row[v]
-        limitLabel.append(l)
-
-    limitAttributeName = []
-    for _, v in enumerate(choseLabel):
-        limitAttributeName.append(dataset.attr_name[v])
-
-    dataset.label = np.array(limitLabel)
-    dataset.attr_name =  limitAttributeName
-    dataset.loss_weight = np.array(list(s.values())[:35])
+    dataset.partition.train = np.arange(0, 11400)
+    dataset.partition.test = np.arange(11400, 19000)
 
     with open(os.path.join(args.save_dir, 'peta_description.pkl'), 'wb+') as f:
         pickle.dump(dataset, f)
