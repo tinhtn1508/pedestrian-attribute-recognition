@@ -130,3 +130,6 @@ class InceptionNet(nn.Module):
         pred_5b = self.st_5b(fusion_5b)
 
         return pred_3b, pred_4d, pred_5b, main_pred
+
+    def name(self) -> str:
+        return 'inception_iccv'

@@ -24,7 +24,7 @@ def buildArgParse():
     parser.add_argument('--images_size', default=(256, 128), type=tuple, required=False, help='The images size')
     parser.add_argument('-j', '--workers', default=4, type=int, help='number of data loading workes')
     parser.add_argument('--epochs', default=60, type=int, help='number of total epochs to run')
-    parser.add_argument('--epoch_step', default=[13, 20], type=int, nargs='+', help='number of epochs to change learning rate')
+    parser.add_argument('--epoch_step', default=[10, 20, 30], type=int, nargs='+', help='number of epochs to change learning rate')
     parser.add_argument('--start_epoch', default=0, type=int, help='manual epoch number')
     parser.add_argument('--batch_size', default=16, type=int, help='The batch size')
     parser.add_argument('--lr', '--learning_rate', default=0.0001, type=float, help='The learning rate')

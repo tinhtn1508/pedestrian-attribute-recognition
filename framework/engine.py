@@ -136,19 +136,20 @@ class TrainingEngine():
             input_var.volatile, target_var.volatile = True, True
 
         self.__state.output = model(input_var)
-        # in case the model has multiple output
-        if type(self.__state.output) == type(()) or type(self.__state.output) == type([]):
+
+        if self.__state.model_name == 'inception_iccv':
             loss_list = []
-            # predict = self.__state.output[0]
+            predict = self.__state.output[0]
             for output in self.__state.output:
                 loss_list.append(criterion(torch.sigmoid(output), target_var))
-                # predict = torch.max(predict, output)
+                predict = torch.max(predict, output)
             self.__state.loss = sum(loss_list)
-            predict = torch.max(torch.max(torch.max(self.__state.output[0],self.__state.output[1]),self.__state.output[2]),self.__state.output[3])
             self.__state.predict = predict.cpu()
             self.__state.accuracy_batch = lib.BinaryAccuracy(predict, target_var)
-        # in case if baseline
+        elif self.__state.model_name == '':
+            pass
         else:
+            # in case of baseline
             self.__state.loss = criterion(self.__state.output, target_var)
             self.__state.accuracy_batch = lib.BinaryAccuracy(self.__state.output, target_var)
 
@@ -191,6 +192,7 @@ class TrainingEngine():
         self._initLearning(model)
         self.__state.train_data_convert_fn = train_dataset.toImageAttribute
         self.__state.val_data_convert_fn = val_dataset.toImageAttribute
+        self.__state.model_name = model.name()
 
         train_dataset.transform = self.__state.train_transform
         val_dataset.transform = self.__state.val_transform

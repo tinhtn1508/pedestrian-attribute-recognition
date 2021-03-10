@@ -55,7 +55,7 @@ attributeName = ['Age16-30',
                 'UpperOther',
                 'V-Neck']
 
-loss_weight = [[0.5016,
+loss_weight = [ 0.5016,
                 0.3275,
                 0.1023,
                 0.0597,
@@ -89,7 +89,7 @@ loss_weight = [[0.5016,
                 0.5125,
                 0.0838,
                 0.4605,
-                0.0124]]
+                0.0124]
 
 def buildArgParse():
     parse = argparse.ArgumentParser()
