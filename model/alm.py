@@ -46,6 +46,29 @@ class ChannelAttn(nn.Module):
         x = self.conv2(x)
         return torch.sigmoid(x)
 
+class VisualAttn(nn.Module):
+    def __init__(self, in_channels, reduction_rate, num_classes):
+        super(VisualAttn, self).__init__()
+
+        assert in_channels%reduction_rate == 0
+        self.conv1 = nn.Conv2d(in_channels, in_channels // reduction_rate, kernel_size=1, stride=1, padding=0)
+        self.conv2 = nn.Conv2d(in_channels // reduction_rate, num_classes, kernel_size=1, stride=1, padding=0)
+        self.conv2_bn = nn.BatchNorm2d(num_classes, affine=True)
+
+    def forward(self, x):
+        x = F.relu(self.conv1(x))
+        x = self.conv2(x)
+        return self.conv2_bn(x)
+
+class ConfidenceWeighting(nn.Module):
+    def __init__(self, in_channels, num_classes):
+        super(ConfidenceWeighting, self).__init__()
+        self.conv1 = nn.Conv2d(in_channels, num_classes, kernel_size=1, stride=1, padding=0)
+
+    def forward(self, x):
+        x = self.conv1(x)
+        return torch.sigmoid(x)
+
 class SpatialTransformBlock(nn.Module):
     def __init__(self, num_classes, pooling_size, channels):
         super(SpatialTransformBlock, self).__init__()
@@ -56,13 +79,17 @@ class SpatialTransformBlock(nn.Module):
 
         self.gap_list = nn.ModuleList()
         self.fc_list = nn.ModuleList()
-        self.att_list = nn.ModuleList()
+        # self.att_list = nn.ModuleList()
+        self.visual_att = nn.ModuleList()
+        self.conf_weight = nn.ModuleList()
         self.stn_list = nn.ModuleList()
         for i in range(self.num_classes):
             self.gap_list.append(nn.AvgPool2d((pooling_size, pooling_size//2), stride=1, padding=0, ceil_mode=True, count_include_pad=True))
-            self.fc_list.append(nn.Linear(channels, 1))
-            self.att_list.append(ChannelAttn(channels))
-            self.stn_list.append(nn.Linear(channels, 4))
+            self.fc_list.append(nn.Linear(num_classes, 1))
+            # self.att_list.append(ChannelAttn(channels))
+            self.visual_att.append(VisualAttn(channels, 16, num_classes))
+            self.conf_weight.append(ConfidenceWeighting(channels, num_classes))
+            self.stn_list.append(nn.Linear(num_classes, 4))
 
     def stn(self, x, theta):
         grid = F.affine_grid(theta, x.size())
@@ -82,7 +109,8 @@ class SpatialTransformBlock(nn.Module):
         pred_list = []
         bs = features.size(0)
         for i in range(self.num_classes):
-            stn_feature = features * self.att_list[i](features) + features
+            # stn_feature = features * self.att_list[i](features) + features
+            stn_feature = self.visual_att[i](features)*self.conf_weight[i](features)
             theta_i = self.stn_list[i](F.avg_pool2d(stn_feature, stn_feature.size()[2:]).view(bs,-1)).view(-1,4)
             theta_i = self.transform_theta(theta_i, i)
 

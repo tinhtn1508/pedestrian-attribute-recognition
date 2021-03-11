@@ -132,8 +132,8 @@ class TrainingEngine():
 
         input_var = torch.autograd.Variable(self.__state.input)
         target_var = torch.autograd.Variable(self.__state.target)
-        if not training:
-            input_var.volatile, target_var.volatile = True, True
+        # if not training:
+        #     input_var.volatile, target_var.volatile = True, True
 
         self.__state.output = model(input_var)
 
@@ -283,6 +283,7 @@ class TrainingEngine():
             self._onEndBatch(True, data_loader)
         self._onEndEpoch(True)
 
+    @torch.no_grad()
     def validate(self, data_loader, model, criterion):
         model.eval()
 
@@ -314,6 +315,7 @@ class TrainingEngine():
         score = self._onEndEpoch(True)
         return score
 
+    @torch.no_grad()
     def test(self, data_loader, model, criterion):
         model.eval()
         if self.__state.use_pb:
