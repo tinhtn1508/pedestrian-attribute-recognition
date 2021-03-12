@@ -178,14 +178,14 @@ class SpatialTransformBlock(nn.Module):
         self.att_list = nn.ModuleList()
         # self.visual_att = nn.ModuleList()
         self.conf_weight = nn.ModuleList()
-        # self.stn_list = nn.ModuleList()
+        self.stn_list = nn.ModuleList()
         for i in range(self.num_classes):
             self.gap_list.append(nn.AvgPool2d((pooling_size, pooling_size//2), stride=1, padding=0, ceil_mode=True, count_include_pad=True))
             self.fc_list.append(nn.Linear(channels, 1))
-            self.att_list.append(SoftAttn(channels))
+            self.att_list.append(ChannelAttn(channels))
             # self.visual_att.append(VisualAttn(channels, 16, num_classes))
             self.conf_weight.append(ConfidenceWeighting(channels, num_classes))
-            # self.stn_list.append(nn.Linear(channels, 4))
+            self.stn_list.append(nn.Linear(channels, 4))
 
     def stn(self, x, theta):
         grid = F.affine_grid(theta, x.size())
@@ -207,10 +207,10 @@ class SpatialTransformBlock(nn.Module):
         for i in range(self.num_classes):
             stn_feature = features * self.att_list[i](features) + features
             # stn_feature = self.visual_att[i](features)*self.conf_weight[i](features)
-            # theta_i = self.stn_list[i](F.avg_pool2d(stn_feature, stn_feature.size()[2:]).view(bs,-1)).view(-1,4)
-            # theta_i = self.transform_theta(theta_i, i)
+            theta_i = self.stn_list[i](F.avg_pool2d(stn_feature, stn_feature.size()[2:]).view(bs,-1)).view(-1,4)
+            theta_i = self.transform_theta(theta_i, i)
 
-            # sub_feature = self.stn(stn_feature, theta_i)
+            sub_feature = self.stn(stn_feature, theta_i)
             pred = self.gap_list[i](stn_feature).view(bs,-1)
             pred = self.fc_list[i](pred)
             pred_list.append(pred)

@@ -143,7 +143,7 @@ class TrainingEngine():
             for output in self.__state.output:
                 loss_list.append(criterion(torch.sigmoid(output), target_var))
                 predict = torch.max(predict, output)
-            self.__state.loss = sum(loss_list)
+            self.__state.loss = 0.5*loss_list[3] + 0.25*loss_list[2]+0.125*loss_list[1]+0.125*loss_list[0]
             self.__state.predict = predict.cpu()
             self.__state.accuracy_batch = lib.BinaryAccuracy(predict, target_var)
         elif self.__state.model_name == '':
