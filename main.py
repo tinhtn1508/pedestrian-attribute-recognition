@@ -49,7 +49,8 @@ def main():
 
     train_dataset, val_dataset, num_classes, attr_name, loss_weight = utils.GetDataset(args.data_workspace, args.dataset)
 
-    _model = model.inception_iccv(pretrained=True, num_classes=num_classes)
+    # _model = model.inception_iccv(pretrained=True, num_classes=num_classes)
+    _model = model.ResnetAlm(num_classes=num_classes)
 
     criterion = model.WeightedBinaryCrossEntropy(loss_weight)
 

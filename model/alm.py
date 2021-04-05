@@ -4,6 +4,7 @@ import torch.tensor as tensor
 from torch.nn import functional as F
 from torch.hub import load_state_dict_from_url
 from model.bninception import BNInception
+from model.resnet import resnet50
 import os
 
 '''
@@ -133,3 +134,22 @@ class InceptionNet(nn.Module):
 
     def name(self) -> str:
         return 'inception_iccv'
+
+class ResnetAlm(nn.Module):
+    def __init__(self, num_classes):
+        super(ResnetAlm, self).__init__()
+        self.num_classes = num_classes
+        self.main_branch = resnet50()
+
+        self.latlayer = nn.Conv2d(512, 256, kernel_size=1, stride=1, padding=0)
+        self.finalfc = nn.Linear(512, num_classes)
+        self.st = SpatialTransformBlock(num_classes, 8, 256)
+
+    def forward(self, input):
+        bs = input.size(0)
+        feat = self.main_branch(input)
+        main_feat = self.global_pool(feat).view(bs,-1)
+        main_feat = self.finalfc(main_feat)
+        fusion = self.latlayer(feat)
+        pred = self.st(fusion)
+        return pred, main_feat
