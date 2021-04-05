@@ -140,10 +140,10 @@ class ResnetAlm(nn.Module):
         super(ResnetAlm, self).__init__()
         self.num_classes = num_classes
         self.main_branch = resnet50()
-
-        self.latlayer = nn.Conv2d(512, 256, kernel_size=1, stride=1, padding=0)
-        self.finalfc = nn.Linear(512, num_classes)
-        self.st = SpatialTransformBlock(num_classes, 8, 256)
+        self.global_pool = nn.AvgPool2d((8,4), stride=1, padding=0, ceil_mode=True, count_include_pad=True)
+        self.latlayer = nn.Conv2d(2048, 1024, kernel_size=1, stride=1, padding=0)
+        self.finalfc = nn.Linear(2048, num_classes)
+        self.st = SpatialTransformBlock(num_classes, 8, 1024)
 
     def forward(self, input):
         bs = input.size(0)
@@ -153,3 +153,6 @@ class ResnetAlm(nn.Module):
         fusion = self.latlayer(feat)
         pred = self.st(fusion)
         return pred, main_feat
+
+    def name(self):
+        return "inception_iccv"
