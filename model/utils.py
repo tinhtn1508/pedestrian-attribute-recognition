@@ -14,7 +14,7 @@ class WeightedBinaryCrossEntropy(object):
             logger.error('the weight can not None')
             raise Exception('Error in WeightedBinaryCrossEntropy')
 
-        cur_weights = torch.exp(target + (1 - target * 2) * self.__weight) # TODO
+        cur_weights = torch.exp(-self.__weight) # TODO
         loss = cur_weights *  (target * torch.log(output + EPS)) + ((1 - target) * torch.log(1 - output + EPS))
         return torch.neg(torch.mean(loss))
 
