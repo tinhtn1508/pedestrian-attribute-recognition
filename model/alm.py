@@ -57,12 +57,12 @@ class SpatialTransformBlock(nn.Module):
 
         self.gap_list = nn.ModuleList()
         self.fc_list = nn.ModuleList()
-        # self.att_list = nn.ModuleList()
+        self.att_list = nn.ModuleList()
         self.stn_list = nn.ModuleList()
         for i in range(self.num_classes):
             self.gap_list.append(nn.AvgPool2d((pooling_size, pooling_size//2), stride=1, padding=0, ceil_mode=True, count_include_pad=True))
             self.fc_list.append(nn.Linear(channels, 1))
-            # self.att_list.append(ChannelAttn(channels))
+            self.att_list.append(ChannelAttn(channels))
             self.stn_list.append(nn.Linear(channels, 4))
 
     def stn(self, x, theta):
@@ -83,7 +83,7 @@ class SpatialTransformBlock(nn.Module):
         pred_list = []
         bs = features.size(0)
         for i in range(self.num_classes):
-            stn_feature = features
+            stn_feature = features * self.att_list[i](features) + features
             theta_i = self.stn_list[i](F.avg_pool2d(stn_feature, stn_feature.size()[2:]).view(bs,-1)).view(-1,4)
             theta_i = self.transform_theta(theta_i, i)
 
