@@ -50,7 +50,9 @@ def main():
     train_dataset, val_dataset, num_classes, attr_name, loss_weight = utils.GetDataset(args.data_workspace, args.dataset)
 
     # _model = model.inception_iccv(pretrained=True, num_classes=num_classes)
-    _model = model.PartBaseConvolution()
+    # _model = model.PartBaseConvolution()
+    _model = model.TopBDNet(num_classes=num_classes,
+    neck=True, double_bottleneck=True, drop_bottleneck_features=True)
 
     criterion = model.WeightedBinaryCrossEntropy(loss_weight)
 

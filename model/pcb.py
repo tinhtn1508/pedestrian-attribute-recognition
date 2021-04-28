@@ -68,6 +68,7 @@ class PartBaseConvolution(nn.Module):
         main_feat = self.global_pool(feat_5b).view(bs,-1)
         main_pred = self.finalfc(main_feat)
         logits_list = [main_pred]
+        logits_list = [main_pred]
 
         local_feat_5b_1 = self.local_conv_list_5b[0](feat_5b[:, :, 0: 4, :])
         logits_list.append(self.st_list_5b[0](local_feat_5b_1))
@@ -78,29 +79,29 @@ class PartBaseConvolution(nn.Module):
         local_feat_5b_3 = self.local_conv_list_5b[2](feat_5b[:, :, 4: 8, :])
         logits_list.append(self.st_list_5b[2](local_feat_5b_3))
 
-        local_feat_4d_1 = self.local_conv_list_4d[0](feat_4d[:, :, 0: 8, :])
-        local_feat_4d_1 = self._upsample_add(local_feat_5b_1, local_feat_4d_1)
-        logits_list.append(self.st_list_4d[0](local_feat_4d_1))
+        # local_feat_4d_1 = self.local_conv_list_4d[0](feat_4d[:, :, 0: 8, :])
+        # local_feat_4d_1 = self._upsample_add(local_feat_5b_1, local_feat_4d_1)
+        # logits_list.append(self.st_list_4d[0](local_feat_4d_1))
 
-        local_feat_4d_2 = self.local_conv_list_4d[1](feat_4d[:, :, 4: 12, :])
-        local_feat_4d_2 = self._upsample_add(local_feat_5b_2, local_feat_4d_2)
-        logits_list.append(self.st_list_4d[1](local_feat_4d_2))
+        # local_feat_4d_2 = self.local_conv_list_4d[1](feat_4d[:, :, 4: 12, :])
+        # local_feat_4d_2 = self._upsample_add(local_feat_5b_2, local_feat_4d_2)
+        # logits_list.append(self.st_list_4d[1](local_feat_4d_2))
 
-        local_feat_4d_3 = self.local_conv_list_4d[2](feat_4d[:, :, 8: 16, :])
-        local_feat_4d_3 = self._upsample_add(local_feat_5b_3, local_feat_4d_3)
-        logits_list.append(self.st_list_4d[2](local_feat_4d_3))
+        # local_feat_4d_3 = self.local_conv_list_4d[2](feat_4d[:, :, 8: 16, :])
+        # local_feat_4d_3 = self._upsample_add(local_feat_5b_3, local_feat_4d_3)
+        # logits_list.append(self.st_list_4d[2](local_feat_4d_3))
 
-        local_feat_3b_1 = self.local_conv_list_3b[0](feat_3b[:, :, 0: 16, :])
-        local_feat_3b_1 = self._upsample_add(local_feat_4d_1, local_feat_3b_1)
-        logits_list.append(self.st_list_3b[0](local_feat_3b_1))
+        # local_feat_3b_1 = self.local_conv_list_3b[0](feat_3b[:, :, 0: 16, :])
+        # local_feat_3b_1 = self._upsample_add(local_feat_4d_1, local_feat_3b_1)
+        # logits_list.append(self.st_list_3b[0](local_feat_3b_1))
 
-        local_feat_3b_2 = self.local_conv_list_3b[1](feat_3b[:, :, 8: 24, :])
-        local_feat_3b_2 = self._upsample_add(local_feat_4d_2, local_feat_3b_2)
-        logits_list.append(self.st_list_3b[1](local_feat_3b_2))
+        # local_feat_3b_2 = self.local_conv_list_3b[1](feat_3b[:, :, 8: 24, :])
+        # local_feat_3b_2 = self._upsample_add(local_feat_4d_2, local_feat_3b_2)
+        # logits_list.append(self.st_list_3b[1](local_feat_3b_2))
 
-        local_feat_3b_3 = self.local_conv_list_3b[2](feat_3b[:, :, 16: 32, :])
-        local_feat_3b_3 = self._upsample_add(local_feat_4d_3, local_feat_3b_3)
-        logits_list.append(self.st_list_3b[2](local_feat_3b_3))
+        # local_feat_3b_3 = self.local_conv_list_3b[2](feat_3b[:, :, 16: 32, :])
+        # local_feat_3b_3 = self._upsample_add(local_feat_4d_3, local_feat_3b_3)
+        # logits_list.append(self.st_list_3b[2](local_feat_3b_3))
 
         return logits_list
 
