@@ -60,6 +60,12 @@ class MultiLabelDataset(data.Dataset):
             img = self.transform(img)
         return img, torch.Tensor(gt_label), imgpath
 
+    def getOriginImage(self, index):
+        imgname, gt_label, _ = self.img_id[index], self.label[index], self.img_idx[index]
+        imgpath = os.path.join(self.data_workspace, self.root_path, imgname)
+        img = self.loader(imgpath)
+        return img
+
     def __len__(self):
         return len(self.img_id)
 

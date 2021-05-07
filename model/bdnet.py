@@ -65,15 +65,14 @@ class TopBDNet(nn.Module):
                     nn.init.constant_(m.bias, 0)
 
     def forward(self, x, return_featuremaps = False, drop_top=False, visdrop=False):
-        x = self.base(x)
-        if return_featuremaps:
-            return x
+        base = self.base(x)
+
         if visdrop: #return dropmask
-            drop_mask = self.batch_drop(x, drop_top=drop_top, visdrop=visdrop)
+            drop_mask = self.batch_drop(base, drop_top=drop_top, visdrop=visdrop)
             return drop_mask
 
         if self.drop_bottleneck_features:
-            drop_x, t_drop_bottleneck_features = self.batch_drop(x, drop_top=drop_top, bottleneck_features = True)
+            drop_x, t_drop_bottleneck_features = self.batch_drop(base, drop_top=drop_top, bottleneck_features = True)
             t_drop_bottleneck_features = self.avgpool_drop(t_drop_bottleneck_features).view(t_drop_bottleneck_features.size()[:2])
             if self.bottleneck_drop_bottleneck_features:
                 x_drop_bottleneck_features = self.bottleneck_drop_bottleneck_features(t_drop_bottleneck_features)
@@ -81,10 +80,10 @@ class TopBDNet(nn.Module):
                 x_drop_bottleneck_features = t_drop_bottleneck_features
             x_drop_bottleneck_features = self.classifier_drop_bottleneck(x_drop_bottleneck_features)
         else:
-            drop_x = self.batch_drop(x, drop_top=drop_top)
+            drop_x = self.batch_drop(base, drop_top=drop_top)
 
         #global
-        x = self.avgpool_global(x)
+        x = self.avgpool_global(base)
         t_x = self.reduction_global(x)
         t_x = t_x.view(t_x.size()[:2])
         if self.bottleneck_global:
@@ -111,11 +110,12 @@ class TopBDNet(nn.Module):
         #     return x_prelogits, t_x, x_drop_prelogits, t_drop_x, x_drop_bottleneck_features, t_drop_bottleneck_features
         # else:
         #     raise KeyError("Unsupported loss: {}".format(self.loss))
+        if return_featuremaps:
+            return base, x_prelogits, x_drop_prelogits, x_drop_bottleneck_features
         return x_prelogits, x_drop_prelogits, x_drop_bottleneck_features
 
     def name(self) -> str:
         return 'inception_iccv'
-
 
 class BatchFeatureErase_Top(nn.Module):
     def __init__(self, channels, h_ratio=0.33, w_ratio=1., double_bottleneck = False):
