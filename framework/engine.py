@@ -135,7 +135,7 @@ class TrainingEngine():
         if not training:
             input_var.volatile, target_var.volatile = True, True
 
-        self.__state.output = model(input_var)
+        self.__state.output = model(input_var, self.__state.mask)
 
         if self.__state.model_name == 'inception_iccv':
             loss_list = []
@@ -262,12 +262,13 @@ class TrainingEngine():
             data_loader = tqdm(data_loader, desc='Training')
 
         end = time.time()
-        for i, (input, target, _) in enumerate(data_loader):
+        for i, (input, target, t, mask) in enumerate(data_loader):
             self.__state.iteration = i
             self.__state.data_time_batch = time.time() - end
             self.__state.data_time.add(self.__state.data_time_batch)
             self.__state.input = input
             self.__state.target = target
+            self.__state.mask = mask
 
             self._onStartBatch(True, model, criterion, data_loader, optimizer)
 
@@ -292,12 +293,13 @@ class TrainingEngine():
             data_loader = tqdm(data_loader, desc='Validating')
 
         end = time.time()
-        for i, (input, target, _) in enumerate(data_loader):
+        for i, (input, target, name, mask) in enumerate(data_loader):
             self.__state.iteration = i
             self.__state.data_time_batch = time.time() - end
             self.__state.data_time.add(self.__state.data_time_batch)
             self.__state.input = input
             self.__state.target = target
+            self.__state.mask = mask
 
             self._onStartBatch(True, model, criterion, data_loader)
 
@@ -326,9 +328,10 @@ class TrainingEngine():
         accu, prec, recall, tol = 0.0, 0.0, 0.0, 0
 
         self._onStartEpoch()
-        for _, (input, target, img_name) in enumerate(data_loader):
+        for _, (input, target, img_name, mask) in enumerate(data_loader):
             self.__state.input = input
             self.__state.target = target
+            self.__state.mask = mask
             if self.__state.use_gpu:
                 self.__state.target = self.__state.target.cuda()
             self._onForward(False, model, criterion, data_loader)

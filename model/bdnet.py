@@ -64,8 +64,11 @@ class TopBDNet(nn.Module):
                 if m.bias is not None:
                     nn.init.constant_(m.bias, 0)
 
-    def forward(self, x, return_featuremaps = False, drop_top=False, visdrop=False):
+    def forward(self, x, mask, return_featuremaps = False, drop_top=False, visdrop=False):
         base = self.base(x)
+        mask = torch.mean(mask, -1)
+        mask = mask.unsqueeze(1) / 255
+        base = base*mask
 
         if visdrop: #return dropmask
             drop_mask = self.batch_drop(base, drop_top=drop_top, visdrop=visdrop)

@@ -9,6 +9,7 @@ import torchvision.datasets as datasets
 import pickle
 import torch
 import random
+import cv2
 
 def gen_A(num_classes, t, adj_file):
     result = pickle.load(open(adj_file, 'rb'))
@@ -43,6 +44,7 @@ class MultiLabelDataset(data.Dataset):
         self.transform = transform
         self.loader = loader
         self.root_path = dataset_info.root
+        self.mask_path = "/content/tinhtn/MyDrive/dataset/pa100k/mask"
         self.attr_id = dataset_info.attr_name
         self.attr_num = len(self.attr_id)
         self.img_idx = dataset_info.partition[split]
@@ -55,10 +57,12 @@ class MultiLabelDataset(data.Dataset):
         imgname, gt_label, _ = self.img_id[index], self.label[index], self.img_idx[index]
         imgpath = os.path.join(self.data_workspace, self.root_path, imgname)
         img = self.loader(imgpath)
+        mask = cv2.imread(self.mask_path + "/" + imgname)
+        mask = cv2.resize(mask, (8, 16))
         
         if self.transform is not None:
             img = self.transform(img)
-        return img, torch.Tensor(gt_label), imgpath
+        return img, torch.Tensor(gt_label), imgpath, torch.Tensor(mask)
 
     def getOriginImage(self, index):
         imgname, gt_label, _ = self.img_id[index], self.label[index], self.img_idx[index]
