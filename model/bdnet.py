@@ -102,7 +102,7 @@ class TopBDNet(nn.Module):
         x_drop_prelogits = self.classifier_db(x_drop_x)
 
         # if not self.training:
-        #     return torch.cat((x_x, x_drop_x), dim=1)
+        #     return x_prelogits, x_drop_prelogits
 
         # if self.loss == 'triplet_dropbatch':
         #     return x_prelogits, t_x, x_drop_prelogits, t_drop_x
@@ -112,7 +112,8 @@ class TopBDNet(nn.Module):
         #     raise KeyError("Unsupported loss: {}".format(self.loss))
         if return_featuremaps:
             return base, x_prelogits, x_drop_prelogits, x_drop_bottleneck_features
-        return x_prelogits, x_drop_prelogits, x_drop_bottleneck_features
+        # return x_prelogits, x_drop_prelogits, x_drop_bottleneck_features
+        return x_prelogits
 
     def name(self) -> str:
         return 'inception_iccv'
