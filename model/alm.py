@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-import torch.tensor as tensor
+# import torch.tensor as tensor
 from torch.nn import functional as F
 from torch.hub import load_state_dict_from_url
 from model.bninception import BNInception
