@@ -111,7 +111,9 @@ class TopBDNet(nn.Module):
         # else:
         #     raise KeyError("Unsupported loss: {}".format(self.loss))
         if return_featuremaps:
-            return base, x_prelogits, x_drop_prelogits, x_drop_bottleneck_features
+            return base, x_prelogits
+        # if return_featuremaps:
+        #     return base, x_prelogits, x_drop_prelogits, x_drop_bottleneck_features
         # return x_prelogits, x_drop_prelogits, x_drop_bottleneck_features
         return x_prelogits
 

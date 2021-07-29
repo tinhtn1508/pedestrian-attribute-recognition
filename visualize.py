@@ -75,12 +75,6 @@ class GradCam():
         return cam
 
 if __name__ == "__main__":
-    _model = model.TopBDNet(num_classes=26,
-    neck=True, double_bottleneck=True, drop_bottleneck_features=True)
-
-    checkpoint = torch.load('model_best_pth.tar', map_location='cpu')
-    _model.load_state_dict(checkpoint['state_dict'])
-
     train_dataset, val_dataset, num_classes, attr_name, loss_weight = utils.GetDataset('./dataset/pa100k', './dataset/pa100k/pa100k_description.pkl')
     train_dataset.transform = transforms.Compose([
                 transforms.Resize(size=(256, 128)),
@@ -89,31 +83,52 @@ if __name__ == "__main__":
                 transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
                 ])
 
-    grad_cam = GradCam(_model)
-    id = 1500
-    img, label, path = train_dataset.__getitem__(id)
-    index = []
-    for i, value in enumerate(label):
-        if value == 1:
-            index.append(i)
-    print(index)
-    print(train_dataset.toImageAttribute(label))
-    origin = train_dataset.getOriginImage(id)
-    origin = keras.preprocessing.image.img_to_array(origin)
+    ids = []
+    for i in range(600, 700):
+        img, label, path = train_dataset.__getitem__(i)
+        l = train_dataset.toImageAttribute(label)
+        if "ShortSleeve" in l:
+            ids.append(i)
 
-    img.unsqueeze_(0)
-    cam = grad_cam.generate_cam(img, 23)
 
-    heatmap = np.uint8(255*cam)
-    jet = cm.get_cmap("jet")
-    jet_colors = jet(np.arange(256))[:, :3]
-    jet_heatmap = jet_colors[heatmap]
-    jet_heatmap = keras.preprocessing.image.array_to_img(jet_heatmap)
-    jet_heatmap = jet_heatmap.resize((origin.shape[1], origin.shape[0]))
-    jet_heatmap = keras.preprocessing.image.img_to_array(jet_heatmap)
 
-    superimposed_img = jet_heatmap * 0.5 + origin
-    superimposed_img = keras.preprocessing.image.array_to_img(superimposed_img)
+    target = "ShortSleeve"
+    method = "random"
+    # path = '/home/tinhtn/workspace/personal/pedestrian-attribute-recognition/output/'
+    for i in ids:
+        _model = model.TopBDNet(num_classes=26,
+        neck=True, double_bottleneck=True, drop_bottleneck_features=True)
 
-    plt.imshow(superimposed_img)
-    plt.show()
+        checkpoint = torch.load('random_model_best_pth.tar', map_location='cpu')
+        _model.load_state_dict(checkpoint['state_dict'])
+
+
+        grad_cam = GradCam(_model)
+        id = i
+        img, label, path = train_dataset.__getitem__(id)
+        index = []
+        for i, value in enumerate(label):
+            if value == 1:
+                index.append(i)
+
+
+        print(index)
+        print(train_dataset.toImageAttribute(label))
+        origin = train_dataset.getOriginImage(id)
+        origin = keras.preprocessing.image.img_to_array(origin)
+
+        img.unsqueeze_(0)
+        cam = grad_cam.generate_cam(img, 13)
+
+        heatmap = np.uint8(255*cam)
+        jet = cm.get_cmap("jet")
+        jet_colors = jet(np.arange(256))[:, :3]
+        jet_heatmap = jet_colors[heatmap]
+        jet_heatmap = keras.preprocessing.image.array_to_img(jet_heatmap)
+        jet_heatmap = jet_heatmap.resize((origin.shape[1], origin.shape[0]))
+        jet_heatmap = keras.preprocessing.image.img_to_array(jet_heatmap)
+
+        superimposed_img = jet_heatmap * 0.5 + origin
+        superimposed_img = keras.preprocessing.image.array_to_img(superimposed_img)
+        plt.imshow(superimposed_img)
+        plt.savefig('output/' +target+"_"+str(id)+"_"+method+'.png')
