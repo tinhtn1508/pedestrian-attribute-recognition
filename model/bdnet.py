@@ -114,8 +114,8 @@ class TopBDNet(nn.Module):
             return base, x_prelogits
         # if return_featuremaps:
         #     return base, x_prelogits, x_drop_prelogits, x_drop_bottleneck_features
-        # return x_prelogits, x_drop_prelogits, x_drop_bottleneck_features
-        return x_prelogits
+        return x_prelogits, x_drop_prelogits, x_drop_bottleneck_features
+        # return x_prelogits
 
     def name(self) -> str:
         return 'inception_iccv'

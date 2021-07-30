@@ -5,9 +5,18 @@ import torchvision.transforms as transforms
 from PIL import Image
 import numpy as np
 import utils
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
+import argparse
+
+parser = argparse.ArgumentParser(description='')
+parser.add_argument('--model', type=str, default='/content/tinhtn/MyDrive/result/model/pa100k/random_model_best_pth.tar')
+parser.add_argument('--image', type=str)
+args = parser.parse_args()
+
 
 _model = model.TopBDNet(num_classes=26, neck=True, double_bottleneck=True, drop_bottleneck_features=True)
-checkpoint = torch.load('random_model_best_pth.tar', map_location='cpu')
+checkpoint = torch.load(args.model, map_location='cpu')
 _model.load_state_dict(checkpoint['state_dict'])
 _model.eval()
 
@@ -22,7 +31,7 @@ tf = transforms.Compose([
                 transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
                 ])
 
-img_path = './test2.jpg'
+img_path = args.image
 img = Image.open(img_path).convert('RGB')
 img = tf(img)
 img.unsqueeze_(0)
@@ -41,4 +50,8 @@ for p, o in zip(prob, output):
         prob_labels.append(p)
 
 res = {labels[i]: int(prob_labels[i]*100) for i in range(len(prob_labels))}
+
+img = mpimg.imread(img_path)
+imgplot = plt.imshow(img)
+plt.show()
 print(res)
